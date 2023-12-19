@@ -1,68 +1,35 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ContactForm } from "./components/ContactForm/ContactsForm";
-import  "./App.css";
+import "./App.css";
 import { ContactList } from "./components/ContactList/ContactList";
 import { Filter } from "./components/Filter/Filter";
-import PropTypes from "prop-types";
+
+import { useDispatch, useSelector } from "react-redux";
+import { loadContacts } from "./redux/contactsSlice";
 
 export const App = () => {
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState("");
+  const contacts = useSelector((state) => state.contacts);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    const savedContacts = JSON.parse(localStorage.getItem("contacts"));
 
-    if (contacts) {
-      setContacts(contacts);
+    if (savedContacts) {
+      dispatch(loadContacts(savedContacts));
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     localStorage.setItem("contacts", JSON.stringify(contacts));
   }, [contacts]);
 
-  const addContact = (id, name, number) => {
-    const isName = contacts.some((contact) => contact.name === name);
-    if (isName) {
-      alert("Kontakt o tej nazwie już istnieje!");
-      return;
-    }
-
-    const newContact = { id, name, number };
-    setContacts((prev) => [...prev, newContact]);
-  };
-
-  const deleteContact = (id) => {
-    const actualContacts = contacts.filter((contact) => contact.id !== id);
-    setContacts(actualContacts);
-  };
-
-  const changeFilter = (e) => setFilter(e.target.value);
-
   return (
     <div className="container">
       <h1>Phonebook</h1>
-      <ContactForm addContact={addContact} />
+      <ContactForm />
       <h2>Contacts</h2>
-      <Filter changeFilter={changeFilter} />
-      <ContactList
-        contacts={contacts}
-        filter={filter.toLowerCase()}
-        deleteContact={deleteContact}
-      />
+      <Filter />
+      <ContactList />
     </div>
   );
-};
-
-App.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string,
-      number: PropTypes.string,
-    })
-  ),
-  filter: PropTypes.string,
-  addContact: PropTypes.func,
-  deleteContact: PropTypes.func,
 };
